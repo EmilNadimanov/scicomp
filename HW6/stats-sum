@@ -1,0 +1,12 @@
+#!/usr/bin/python3
+
+import sys
+
+print(
+        sum(
+            map(
+                float,
+                sys.stdin.read().strip().split('\n')
+                )
+    )
+)
