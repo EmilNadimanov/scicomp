@@ -1,0 +1,21 @@
+#!/usr/bin/python3
+stats_operations = __import__("operations.stats-operations", fromlist=['compute'])
+compute = stats_operations.compute
+
+import subprocess
+import sys
+
+processes = [subprocess.Popen(f"./operations/stats-{op}.py",
+               stdin=subprocess.PIPE, 
+               stdout=subprocess.PIPE)
+             for op in sys.argv[1:]]
+
+for line in sys.stdin:
+    for number, subprocess in zip(line.split('\t'), processes):
+        subprocess.stdin.write("{}\n".format(number).encode('utf-8'))
+
+for subprocess in processes:
+    subprocess.stdin.close()
+    print(subprocess.stdout.read().decode('utf-8'), end='\t')
+print()
+

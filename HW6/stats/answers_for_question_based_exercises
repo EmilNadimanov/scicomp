@@ -1,0 +1,22 @@
+Exercise: What are the benefits of this multiple-communicating-programs architecture? What are the drawbacks? Explain.
+
+The main advantage is the fact that implementations are isolated - that means we can maintain the save interface for a subprogram, but we can drastically change the inner implementation, even on the fly in case DevOps stuff is used, and this will be safe for the whole product, because errors are usually also isolated in such subprocesses.
+It is also a good practice to make programs comprehensible - it is easier to perceive separate programs that do their own thing than submerging into the abyss of one-in-all monolyts of code. This is what make development of modular programs easier for large products.
+One drawback is the fact that we rely on inter-program communication, which means that we can have several copies of the same data in our cluster if it is running, say, several Docker containers with co-dependent programs in one network.  
+
+Exercise: What happens if your columns are different lengths? Are empty cells treated as zero? If so, change the design by altering the stats program to skip empty cells.
+
+Empty cells are basically '\n'-lines, and I apply str.strip to each line and filter out empty lines, so whitespace cells are ignored.
+
+Exercise: Explain how you might change the design to permit more than one aggregation of a single column. How would you communicate this to stats with arguments? What logic needs to be changed in stats? Do you need to change the aggregator programs at all?
+
+One could collect lines of numbers in a matrix and apply aggregations to columns according to a certain pattern in comand-line argumentsl. E.g.,numeric arguments after string-based arguments.
+This requires a change in stats script, I imagine something like a HashMap(aggregation -> List(col_1, col_2, col_n)), where for each pair (key: str, value: List[List[float]]) we apply operation KEY to elements of VALUE.
+
+Exercise: Explain how you might change the design to permit two-column aggregators: t-test and integral. How would you communicate this to stats with arguments? What logic needs to be changed in stats?
+
+One could pass such column as a '|'-separated column among all the '\t'-separated columns, e.g.
+1|2	3
+2|3	5
+4|5	6
+

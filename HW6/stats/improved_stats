@@ -1,0 +1,59 @@
+#!/usr/bin/python3
+
+# IMPROVED TO ACCEPT >1 AGGREGATION AGAINST ONE COLUMN OF NUMBERS
+# 
+# Pass numbers of columns after aggregation to receive corresponding computation results
+# Use as
+#     ./stats_improved mean 1 2 3 median 2 3 sum 1 3
+# to get mean for columns 1, 2 3; median for columns 2, 3; sum for columns 1, 3
+#
+# - 1-based indexing is used
+# 
+# Output is formatted as:
+# aggregation   result1  result2 result3
+#   
+#
+# Example:
+# mean  5.5 15  136.25
+
+stats_operations = __import__("operations.stats-operations", fromlist=['compute', 'OPERATIONS'])
+compute = stats_operations.compute
+OPERATIONS = stats_operations.OPERATIONS
+
+import subprocess
+import sys
+
+AGGREGATIONS_TO_COLUMNS = dict() 
+rows = [row.split('\t') for row in sys.stdin]
+COLUMNS = {i+1 : col for i, col in
+          enumerate(
+              [[row[i] for row in rows] for i in range(max(map(len, rows)))]
+              )
+           }
+OUTPUT = ''
+
+current_agg = ''
+for arg in sys.argv[1:]:
+    if arg.isnumeric():
+        if current_agg == '':
+            raise Exception("Read the explanation of the  pattern and do not make me sad")
+        AGGREGATIONS_TO_COLUMNS[current_agg] = AGGREGATIONS_TO_COLUMNS.get(current_agg, list())
+        AGGREGATIONS_TO_COLUMNS[current_agg].append(arg)
+    else:
+        if arg not in OPERATIONS:
+            raise Exception("Unknown operation")
+        current_agg = arg
+
+for aggr in AGGREGATIONS_TO_COLUMNS.keys():
+    line = [aggr]
+    for column in AGGREGATIONS_TO_COLUMNS[aggr]:
+        subproc = subprocess.Popen(f"./operations/stats-{aggr}.py",
+               stdin=subprocess.PIPE, 
+               stdout=subprocess.PIPE)
+        for number in COLUMNS[int(column)]:
+            subproc.stdin.write("{}\n".format(number).encode('utf-8'))
+        subproc.stdin.close()
+        line.append(subproc.stdout.read().decode('utf-8'))
+    OUTPUT += '\t'.join(line) + '\n'
+print(OUTPUT)
+
